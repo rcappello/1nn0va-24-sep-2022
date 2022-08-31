@@ -1,0 +1,235 @@
+[
+  {
+    "@id": "dtmi:custom22v0wvjyev8:Flow_meter_46i;1",
+    "@type": "Interface",
+    "contents": [
+      {
+        "@id": "dtmi:zz3zamx:modelDefinition:z7cr_z06i:InstallationLocation",
+        "@type": [
+          "Property",
+          "Cloud",
+          "Location"
+        ],
+        "displayName": {
+          "en": "Installation location"
+        },
+        "name": "InstallationLocation",
+        "schema": "geopoint"
+      },
+      {
+        "@id": "dtmi:zz3zamx:modelDefinition:z7cr_z06i:InstallationDate",
+        "@type": [
+          "Property",
+          "Cloud",
+          "DateTimeValue"
+        ],
+        "displayName": {
+          "en": "Installation date"
+        },
+        "name": "InstallationDate",
+        "schema": "date"
+      },
+      {
+        "@id": "dtmi:zz3zamx:modelDefinition:z7cr_z06i:Manufacturer",
+        "@type": [
+          "Property",
+          "Cloud",
+          "StringValue"
+        ],
+        "displayName": {
+          "en": "Manufacturer"
+        },
+        "name": "Manufacturer",
+        "schema": "string"
+      },
+      {
+        "@id": "dtmi:zz3zamx:modelDefinition:z7cr_z06i:HumidityThreshold",
+        "@type": [
+          "Property",
+          "Cloud",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Humidity threshold"
+        },
+        "name": "HumidityThreshold",
+        "schema": "double"
+      },
+      {
+        "@id": "dtmi:zz3zamx:modelDefinition:z7cr_z06i:MaxFlowThreshold",
+        "@type": [
+          "Property",
+          "Cloud",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Max flow threshold"
+        },
+        "name": "MaxFlowThreshold",
+        "schema": "double"
+      },
+      {
+        "@id": "dtmi:zz3zamx:modelDefinition:z7cr_z06i:SerialNumber",
+        "@type": [
+          "Property",
+          "Cloud",
+          "StringValue"
+        ],
+        "displayName": {
+          "en": "Serial number"
+        },
+        "name": "SerialNumber",
+        "schema": "string"
+      },
+      {
+        "@id": "dtmi:zz3zamx:modelDefinition:z7cr_z06i:MaintenanceContract",
+        "@type": [
+          "Property",
+          "Cloud",
+          "BooleanValue"
+        ],
+        "displayName": {
+          "en": "Maintenance contract"
+        },
+        "name": "MaintenanceContract",
+        "schema": "boolean"
+      },
+      {
+        "@id": "dtmi:zz3zamx:modelDefinition:z7cr_z06i:FlowMeterNumber",
+        "@type": [
+          "Property",
+          "Cloud",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Flow meter number"
+        },
+        "name": "FlowMeterNumber",
+        "schema": "double"
+      },
+      {
+        "@id": "dtmi:zz3zamx:modelDefinition:z7cr_z06i:ReverseFlowThreshold",
+        "@type": [
+          "Property",
+          "Cloud",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Reverse flow threshold"
+        },
+        "name": "ReverseFlowThreshold",
+        "schema": "double"
+      }
+    ],
+    "displayName": {
+      "en": "Flow meter"
+    },
+    "extends": [
+      "dtmi:custom22v0wvjyev8:Flow_meter_1t6;1"
+    ],
+    "@context": [
+      "dtmi:iotcentral:context;2",
+      "dtmi:dtdl:context;2"
+    ]
+  },
+  {
+    "@context": [
+      "dtmi:iotcentral:context;2",
+      "dtmi:dtdl:context;2"
+    ],
+    "@id": "dtmi:custom22v0wvjyev8:Flow_meter_1t6;1",
+    "@type": [
+      "Interface",
+      "NamedInterface"
+    ],
+    "contents": [
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Flow_meter_1t6:Temperature;1",
+        "@type": [
+          "Telemetry",
+          "Temperature",
+          "NumberValue",
+          "Visualized"
+        ],
+        "displayName": {
+          "en": "Temperature"
+        },
+        "name": "Temperature",
+        "schema": "double",
+        "color": "#7D4F73",
+        "maxValue": 100,
+        "minValue": -40
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Flow_meter_1t6:Flow;1",
+        "@type": [
+          "Telemetry",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Flow"
+        },
+        "name": "Flow",
+        "schema": "double",
+        "maxValue": 200,
+        "minValue": -100
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Flow_meter_1t6:Moisture;1",
+        "@type": [
+          "Telemetry",
+          "NumberValue",
+          "Visualized"
+        ],
+        "displayName": {
+          "en": "Moisture"
+        },
+        "name": "Moisture",
+        "schema": "double",
+        "color": "#B6960B",
+        "maxValue": 100
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Flow_meter_1t6:Pressure;1",
+        "@type": [
+          "Telemetry",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Pressure"
+        },
+        "name": "Pressure",
+        "schema": "double",
+        "maxValue": 100
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Flow_meter_1t6:CalibrateMeter;1",
+        "@type": "Command",
+        "displayName": {
+          "en": "Calibrate meter"
+        },
+        "name": "CalibrateMeter",
+        "request": {
+          "@type": "CommandPayload",
+          "displayName": {
+            "en": "Calibrate"
+          },
+          "name": "Calibrate",
+          "schema": "double"
+        },
+        "response": {
+          "@type": "CommandPayload",
+          "displayName": {
+            "en": "Calibrating"
+          },
+          "name": "Calibrating",
+          "schema": "double"
+        }
+      }
+    ],
+    "displayName": {
+      "en": "Flow meter"
+    },
+    "name": "Flow_meter_1t6"
+  }
+]

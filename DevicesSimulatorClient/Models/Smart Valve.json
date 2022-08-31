@@ -1,0 +1,432 @@
+[
+  {
+    "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_3s3;1",
+    "@type": "Interface",
+    "contents": [
+      {
+        "@id": "dtmi:e7gnnvha:modelDefinition:joila:LastMaintenanceDate",
+        "@type": [
+          "Property",
+          "Cloud",
+          "DateTimeValue"
+        ],
+        "displayName": {
+          "en": "Last maintenance date"
+        },
+        "name": "LastMaintenanceDate",
+        "schema": "date"
+      },
+      {
+        "@id": "dtmi:e7gnnvha:modelDefinition:joila:FlowThreshold",
+        "@type": [
+          "Property",
+          "Cloud",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Flow threshold"
+        },
+        "name": "FlowThreshold",
+        "schema": "double"
+      },
+      {
+        "@id": "dtmi:e7gnnvha:modelDefinition:joila:Manufacturer",
+        "@type": [
+          "Property",
+          "Cloud",
+          "StringValue"
+        ],
+        "displayName": {
+          "en": "Manufacturer"
+        },
+        "name": "Manufacturer",
+        "schema": "string"
+      },
+      {
+        "@id": "dtmi:e7gnnvha:modelDefinition:joila:MaintenanceContract",
+        "@type": [
+          "Property",
+          "Cloud",
+          "BooleanValue"
+        ],
+        "displayName": {
+          "en": "Maintenance contract"
+        },
+        "name": "MaintenanceContract",
+        "schema": "boolean"
+      },
+      {
+        "@id": "dtmi:e7gnnvha:modelDefinition:joila:InstallationLocation",
+        "@type": [
+          "Property",
+          "Cloud",
+          "Location"
+        ],
+        "displayName": {
+          "en": "Installation location"
+        },
+        "name": "InstallationLocation",
+        "schema": "geopoint"
+      },
+      {
+        "@id": "dtmi:e7gnnvha:modelDefinition:joila:InstallationDate",
+        "@type": [
+          "Property",
+          "Cloud",
+          "DateTimeValue"
+        ],
+        "displayName": {
+          "en": "Installation date"
+        },
+        "name": "InstallationDate",
+        "schema": "date"
+      }
+    ],
+    "displayName": {
+      "en": "Smart Valve"
+    },
+    "extends": [
+      "dtmi:custom22v0wvjyev8:Smart_Valve_4t7;1",
+      "dtmi:custom22v0wvjyev8:Smart_Valve_yv;1",
+      "dtmi:custom22v0wvjyev8:Smart_Valve_73d;1"
+    ],
+    "@context": [
+      "dtmi:iotcentral:context;2",
+      "dtmi:dtdl:context;2"
+    ]
+  },
+  {
+    "@context": [
+      "dtmi:iotcentral:context;2",
+      "dtmi:dtdl:context;2"
+    ],
+    "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_4t7;1",
+    "@type": [
+      "Interface",
+      "NamedInterface"
+    ],
+    "contents": [
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_4t7:Temperature;1",
+        "@type": [
+          "Telemetry",
+          "Temperature",
+          "NumberValue",
+          "Visualized"
+        ],
+        "displayName": {
+          "en": "Temperature"
+        },
+        "name": "Temperature",
+        "schema": "double",
+        "color": "#7D4F73"
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_4t7:ActuatorPosition;1",
+        "@type": [
+          "Property",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Actuator Position"
+        },
+        "name": "ActuatorPosition",
+        "schema": "double",
+        "writable": false,
+        "maxValue": 4
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_4t7:RotationSpeed;1",
+        "@type": [
+          "Property",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Rotation Speed"
+        },
+        "name": "RotationSpeed",
+        "schema": "double",
+        "writable": false,
+        "maxValue": 10
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_4t7:Pressure;1",
+        "@type": [
+          "Telemetry",
+          "Pressure",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Pressure"
+        },
+        "name": "Pressure",
+        "schema": "double"
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_4t7:Location;1",
+        "@type": [
+          "Property",
+          "Location",
+          "Initialized"
+        ],
+        "displayName": {
+          "en": "Location"
+        },
+        "name": "Location",
+        "schema": "geopoint",
+        "writable": true,
+        "initialValue": "{\"lat\":47.60357,\"lon\":-122.32945}"
+      }
+    ],
+    "displayName": {
+      "en": "Smart Valve"
+    },
+    "name": "Smart_Valve_4t7"
+  },
+  {
+    "@context": [
+      "dtmi:iotcentral:context;2",
+      "dtmi:dtdl:context;2"
+    ],
+    "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_yv;1",
+    "@type": [
+      "Interface",
+      "NamedInterface"
+    ],
+    "contents": [
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_yv:SetValvePosition;1",
+        "@type": "Command",
+        "displayName": {
+          "en": "Set Valve Position"
+        },
+        "name": "SetValvePosition",
+        "request": {
+          "@type": "CommandPayload",
+          "displayName": {
+            "en": "Set Valve Position"
+          },
+          "name": "SetValvePosition",
+          "schema": "double"
+        },
+        "response": {
+          "@type": "CommandPayload",
+          "displayName": {
+            "en": "Updating Valve Position"
+          },
+          "name": "UpdatingValvePosition",
+          "schema": "double"
+        }
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_yv:CloseValve;1",
+        "@type": "Command",
+        "displayName": {
+          "en": "Close Valve"
+        },
+        "name": "CloseValve",
+        "request": {
+          "@type": "CommandPayload",
+          "displayName": {
+            "en": "Close Valve"
+          },
+          "name": "CloseValve",
+          "schema": "double"
+        },
+        "response": {
+          "@type": "CommandPayload",
+          "displayName": {
+            "en": "Closing Valve"
+          },
+          "name": "ClosingValve",
+          "schema": "double"
+        }
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_yv:OpenValve;1",
+        "@type": "Command",
+        "displayName": {
+          "en": "Open Valve"
+        },
+        "name": "OpenValve",
+        "request": {
+          "@type": "CommandPayload",
+          "displayName": {
+            "en": "Open Valve"
+          },
+          "name": "OpenValve",
+          "schema": "double"
+        },
+        "response": {
+          "@type": "CommandPayload",
+          "displayName": {
+            "en": "Opening Valve"
+          },
+          "name": "OpeningValve",
+          "schema": "double"
+        }
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_yv:TimeRemaining;1",
+        "@type": [
+          "Property",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Time Remaining"
+        },
+        "name": "TimeRemaining",
+        "schema": "double",
+        "writable": false
+      }
+    ],
+    "displayName": {
+      "en": "Device Commands"
+    },
+    "name": "Smart_Valve_yv"
+  },
+  {
+    "@context": [
+      "dtmi:iotcentral:context;2",
+      "dtmi:dtdl:context;2"
+    ],
+    "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d;1",
+    "@type": [
+      "Interface",
+      "NamedInterface"
+    ],
+    "contents": [
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:ActuatorState;1",
+        "@type": [
+          "Property",
+          "State",
+          "Visualized"
+        ],
+        "displayName": {
+          "en": "Actuator State"
+        },
+        "name": "ActuatorState",
+        "schema": {
+          "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:ActuatorState:schema;1",
+          "@type": "Enum",
+          "enumValues": [
+            {
+              "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:ActuatorState:schema:Offline;1",
+              "displayName": {
+                "en": "Offline"
+              },
+              "enumValue": 0,
+              "name": "Offline"
+            },
+            {
+              "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:ActuatorState:schema:Online;1",
+              "displayName": {
+                "en": "Online"
+              },
+              "enumValue": 1,
+              "name": "Online"
+            }
+          ],
+          "valueSchema": "integer"
+        },
+        "writable": false,
+        "colors": [
+          {
+            "dtmi:iotcentral:property:value;2": 0
+          },
+          {
+            "dtmi:iotcentral:property:value;2": 1
+          }
+        ]
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:BatteryLevel;1",
+        "@type": [
+          "Property",
+          "State",
+          "Visualized"
+        ],
+        "displayName": {
+          "en": "Battery Level"
+        },
+        "name": "BatteryLevel",
+        "schema": {
+          "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:BatteryLevel:schema;1",
+          "@type": "Enum",
+          "enumValues": [
+            {
+              "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:BatteryLevel:schema:Low;1",
+              "displayName": {
+                "en": "Low"
+              },
+              "enumValue": 0,
+              "name": "Low"
+            },
+            {
+              "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:BatteryLevel:schema:Full;1",
+              "displayName": {
+                "en": "Full"
+              },
+              "enumValue": 1,
+              "name": "Full"
+            }
+          ],
+          "valueSchema": "integer"
+        },
+        "writable": false,
+        "colors": [
+          {
+            "dtmi:iotcentral:property:value;2": 0
+          },
+          {
+            "dtmi:iotcentral:property:value;2": 1
+          }
+        ]
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:ValvePosition;1",
+        "@type": [
+          "Property",
+          "BooleanValue"
+        ],
+        "displayName": {
+          "en": "Valve Position"
+        },
+        "name": "ValvePosition",
+        "schema": "boolean",
+        "writable": false
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:ValveNumber;1",
+        "@type": [
+          "Property",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Valve Number"
+        },
+        "name": "ValveNumber",
+        "schema": "integer",
+        "writable": true
+      },
+      {
+        "@id": "dtmi:custom22v0wvjyev8:Smart_Valve_73d:SerialNumber;1",
+        "@type": [
+          "Property",
+          "NumberValue"
+        ],
+        "displayName": {
+          "en": "Serial Number"
+        },
+        "name": "SerialNumber",
+        "schema": "integer",
+        "writable": false
+      }
+    ],
+    "displayName": {
+      "en": "Device Operation Properties"
+    },
+    "name": "Smart_Valve_73d"
+  }
+]
