@@ -22,7 +22,7 @@ namespace DeviceCommon
         NotFound = 404
     }
 
-    public class ValveSample
+    public class ValveSample : ISample
     {
         // The default reported "value" and "av" for each "Thermostat" component on the client initial startup.
         // See https://docs.microsoft.com/azure/iot-develop/concepts-convention#writable-properties for more details in acknowledgment responses.
@@ -42,7 +42,7 @@ namespace DeviceCommon
         private readonly Random _random = new Random();
 
         private double _temperature;
-        private double _pressure;
+        private double _pressure = 1.0d;
         private double _maxTemp;
         private double _maxPressure;
 
@@ -54,10 +54,6 @@ namespace DeviceCommon
 
         private readonly DeviceClient _deviceClient;
         private readonly ILogger _logger;
-
-        bool temperatureReset = true;
-        bool pressureReset = true;
-
 
         // A safe initial value for caching the writable properties version is 1, so the client
         // will process all previous property change requests and initialize the device application
@@ -111,18 +107,13 @@ namespace DeviceCommon
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                if (temperatureReset)
-                {
-                    // Generate a random value between 5.0°C and 45.0°C for the current temperature reading.
-                    _temperature = Math.Round(_random.NextDouble() * 40.0 + 5.0, 1);
-                    temperatureReset = false;
-                }
+                // Generate a random value between 25.0°C and 27.0°C for the current temperature reading.
+                _temperature = Math.Round(_random.NextDouble() * 2.0 + 25.0, 1);
 
-                if (pressureReset)
+                if (_pressure != 0.0d)
                 {
-                    // Generate a random value between 10 and 15 for the current pressure reading.
-                    _pressure = Math.Round(_random.NextDouble() * 5.0 + 10.0, 1);
-                    pressureReset = false;
+                    // Generate a random value between 10 and 11 for the current pressure reading.
+                    _pressure = Math.Round(_random.NextDouble() * 1.0 + 10.0, 1);
                 }
 
                 await SendTemperatureAsync(cancellationToken);
@@ -217,7 +208,7 @@ namespace DeviceCommon
 
                 if(_pressure == 0.0d)
                 {
-                    _pressure = Math.Round(_random.NextDouble() * 5.0 + 10.0, 1);
+                    _pressure = Math.Round(_random.NextDouble() * 1.0 + 10.0, 1);
 
                     var report = new
                     {

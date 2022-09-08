@@ -11,15 +11,10 @@ namespace DevicesSimulatorClient
 {
     public class Program
     {
-        private const string SdkEventProviderPrefix = "Microsoft-Azure-";
-
         public static async Task Main(string[] args)
         {
             // Set up logging
             ILogger logger = InitializeConsoleDebugLogger();
-
-            // Instantiating this seems to do all we need for outputting SDK events to our console log.
-            using var skdLog = new ConsoleEventListener(SdkEventProviderPrefix, logger);
 
             var builder = new ConfigurationBuilder()
                .SetBasePath(Directory.GetCurrentDirectory())
@@ -45,7 +40,6 @@ namespace DevicesSimulatorClient
             await deviceClientEngine.RunDevicesClientAsync();
         }
 
-
         private static ILogger InitializeConsoleDebugLogger()
         {
             using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
@@ -54,12 +48,11 @@ namespace DevicesSimulatorClient
                 .AddFilter(level => level >= LogLevel.Debug)
                 .AddSystemdConsole(options =>
                 {
-                    options.TimestampFormat = "[MM/dd/yyyy HH:mm:ss]";
+                    options.TimestampFormat = "[yyyy/MM/dd HH:mm:ss]";
                 });
             });
 
-            return loggerFactory.CreateLogger<ValveSample>();
+            return loggerFactory.CreateLogger<ISample>();
         }
-
     }
 }
