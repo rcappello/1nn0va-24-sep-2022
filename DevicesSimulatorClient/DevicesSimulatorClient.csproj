@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>disable</Nullable>
+	<LangVersion>8.0</LangVersion>
+	<RootNamespace>DevicesSimulatorClient</RootNamespace>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -13,6 +13,9 @@
 		<PackageReference Include="Microsoft.Azure.Devices.Provisioning.Transport.Mqtt" Version="1.17.2" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="6.0.0" />
+		
+		<!-- Working around a bug between DotNetty and .NET 5.0+ by specifying the exact version of DotNetty.Common that has the fix -->
+		<PackageReference Include="DotNetty.Common" Version="0.7.4" />
 	</ItemGroup>
 
 	<ItemGroup>

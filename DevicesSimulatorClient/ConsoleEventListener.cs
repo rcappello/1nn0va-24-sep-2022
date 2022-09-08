@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics.Tracing;
+using System.Linq;
 
 namespace DevicesSimulatorClient
 {
