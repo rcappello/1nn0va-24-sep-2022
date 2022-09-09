@@ -1,4 +1,5 @@
 ﻿using DeviceCommon.Enums;
+using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Azure.Devices.Client;
 using Microsoft.Azure.Devices.Shared;
 using Microsoft.Extensions.Logging;
@@ -12,35 +13,31 @@ using System.Threading.Tasks;
 
 namespace DeviceCommon
 {
-    public class ValveSample : ISample
+    public class FlowSample : ISample
     {
         // The default reported "value" and "av" for each "Thermostat" component on the client initial startup.
         // See https://docs.microsoft.com/azure/iot-develop/concepts-convention#writable-properties for more details in acknowledgment responses.
         private const double DefaultPropertyValue = 0d;
         private const long DefaultAckVersion = 0L;
 
-        private const string ActuatorPositionProperty = "ActuatorPosition";
-        private const string ActuatorStateProperty = "ActuatorState";
-        private const string BatteryLevelProperty = "BatteryLevel";
-        private const string LocationProperty = "LocationPosition";
-        private const string RotationSpeedProperty = "RotationSpeed";
-        private const string SerialNumberProperty = "SerialNumber";
-        private const string TimeRemainingProperty = "TimeRemaining";
-        private const string ValveNumberProperty = "ValveNumber";
-        private const string ValvePositionProperty = "ValvePosition";
-
         private readonly Random _random = new Random();
 
         private double _temperature;
-        private double _pressure = 1.0d;
+        private double _pressure;
+        private double _flow;
+        private double _moisture;
         private double _maxTemp;
         private double _maxPressure;
+        private double _maxMoisture;
+        private double _maxFlow;
 
         // Dictionary to hold the Temperature and Pressure updates sent over.
         // NOTE: Memory constrained devices should leverage storage capabilities of an external service to store this information and perform computation.
         // See https://docs.microsoft.com/en-us/azure/event-grid/compare-messaging-services for more details.
         private readonly Dictionary<DateTimeOffset, double> _temperatureReadingsDateTimeOffset = new Dictionary<DateTimeOffset, double>();
         private readonly Dictionary<DateTimeOffset, double> _pressureReadingsDateTimeOffset = new Dictionary<DateTimeOffset, double>();
+        private readonly Dictionary<DateTimeOffset, double> _moistureReadingsDateTimeOffset = new Dictionary<DateTimeOffset, double>();
+        private readonly Dictionary<DateTimeOffset, double> _flowReadingsDateTimeOffset = new Dictionary<DateTimeOffset, double>();
 
         private readonly DeviceClient _deviceClient;
         private readonly ILogger _logger;
@@ -51,7 +48,7 @@ namespace DeviceCommon
         // has been processed.
         private static long s_localWritablePropertiesVersion = 1;
 
-        public ValveSample(DeviceClient deviceClient, ILogger logger)
+        public FlowSample(DeviceClient deviceClient, ILogger logger)
         {
             _deviceClient = deviceClient ?? throw new ArgumentNullException(nameof(deviceClient));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -61,8 +58,7 @@ namespace DeviceCommon
         {
             // This sample follows the following workflow:
             // -> Set handler to receive and respond to connection status changes.
-            // -> Set handler to receive "OpenValve" command, and send the valve new pressure as command response.
-            // -> Set handler to receive "CloseValve" command, and send the valve new pressure as command response.
+            // -> Set handler to receive "CalibrateMeter" command, and send the valve new pressure as command response.
             // -> Check if the device properties are empty on the initial startup. If so, report the default values with ACK to the hub.
             // -> Periodically send "Temperature" over telemetry.
             // -> Periodically send "Pressure" over telemetry.
@@ -85,11 +81,8 @@ namespace DeviceCommon
             //_logger.LogDebug($"Set handler for \"getMaxMinReport\" command.");
             //await _deviceClient.SetMethodHandlerAsync("getMaxMinReport", HandleMaxMinReportCommand, _deviceClient, cancellationToken);
 
-            _logger.LogDebug($"Set handler for \"OpenValve\" command.");
-            await _deviceClient.SetMethodHandlerAsync("OpenValve", HandleOpenValveCommand, _deviceClient, cancellationToken);
-
-            _logger.LogDebug($"Set handler for \"CloseValve\" command.");
-            await _deviceClient.SetMethodHandlerAsync("CloseValve", HandleCloseValveCommand, _deviceClient, cancellationToken);
+            _logger.LogDebug($"Set handler for \"CalibrateMeter\" command.");
+            await _deviceClient.SetMethodHandlerAsync("CalibrateMeter", HandleCalibrateMeterCommand, _deviceClient, cancellationToken);
 
             _logger.LogDebug("Check if the device properties are empty on the initial startup.");
             await CheckEmptyPropertiesAsync(cancellationToken);
@@ -99,14 +92,19 @@ namespace DeviceCommon
                 // Generate a random value between 25.0°C and 27.0°C for the current temperature reading.
                 _temperature = Math.Round(_random.NextDouble() * 2.0 + 25.0, 1);
 
-                if (_pressure != 0.0d)
-                {
-                    // Generate a random value between 10 and 11 for the current pressure reading.
-                    _pressure = Math.Round(_random.NextDouble() * 1.0 + 10.0, 1);
-                }
+                // Generate a random value between 190 and 200 for the current flow reading.
+                _flow = Math.Round(_random.NextDouble() * 10.0 + 190.0, 1);
+
+                // Generate a random value between 90 and 100 for the current moisture reading.
+                _moisture = Math.Round(_random.NextDouble() * 10.0 + 100.0, 1);
+
+                // Generate a random value between 10 and 11 for the current pressure reading.
+                _pressure = Math.Round(_random.NextDouble() * 1.0 + 10.0, 1);
 
                 await SendTemperatureAsync(cancellationToken);
                 await SendPressureAsync(cancellationToken);
+                await SendMoistureAsync(cancellationToken);
+                await SendFlowAsync(cancellationToken);
                 await Task.Delay(5 * 1000, cancellationToken);
             }
         }
@@ -130,15 +128,9 @@ namespace DeviceCommon
                 foreach (KeyValuePair<string, object> propertyUpdate in twinCollection)
                 {
                     string propertyName = propertyUpdate.Key;
-                    if (propertyName == ActuatorPositionProperty)
-                    {
-                        //await TargetTemperatureUpdateCallbackAsync(twinCollection, propertyName);
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"Property: Received an unrecognized property update from service:" +
-                            $"\n[ {propertyUpdate.Key}: {propertyUpdate.Value} ].");
-                    }
+
+                    _logger.LogWarning($"Property: Received an unrecognized property update from service:" +
+                        $"\n[ {propertyUpdate.Key}: {propertyUpdate.Value} ].");
                 }
 
                 _logger.LogInformation($"The writable property version on local is currently {s_localWritablePropertiesVersion}.");
@@ -188,64 +180,25 @@ namespace DeviceCommon
             return collection.Contains(propertyName) ? (true, (T)collection[propertyName]) : (false, default);
         }
 
-        private Task<MethodResponse> HandleOpenValveCommand(MethodRequest request, object userContext)
+        private Task<MethodResponse> HandleCalibrateMeterCommand(MethodRequest request, object userContext)
         {
             try
             {
-                _logger.LogDebug($"Command: Received - OpenValve " +
+                _logger.LogDebug($"Command: Received - CalibrateMeter " +
                     $"{request.DataAsJson}.");
 
-                if(_pressure == 0.0d)
+                _pressure = Math.Round(_random.NextDouble() * 1.0 + 10.0, 1);
+
+                var report = new
                 {
-                    _pressure = Math.Round(_random.NextDouble() * 1.0 + 10.0, 1);
+                    Calibrating = 1.0d,
+                };
 
-                    var report = new
-                    {
-                        Pressure = _pressure,
-                    };
+                _logger.LogDebug($"Command: OpenValve:" +
+                        $" New Pressure={report.Calibrating}");
 
-                    _logger.LogDebug($"Command: OpenValve:" +
-                            $" New Pressure={report.Pressure}");
-
-                    byte[] responsePayload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(report));
-                    return Task.FromResult(new MethodResponse(responsePayload, (int)StatusCode.Completed));
-                }
-
-                _logger.LogDebug($"Command: Valve already opened ");
-                return Task.FromResult(new MethodResponse((int)StatusCode.AlreadyOpened));
-            }
-            catch (JsonReaderException ex)
-            {
-                _logger.LogDebug($"Command input is invalid: {ex.Message}.");
-                return Task.FromResult(new MethodResponse((int)StatusCode.BadRequest));
-            }
-        }
-
-        private Task<MethodResponse> HandleCloseValveCommand(MethodRequest request, object userContext)
-        {
-            try
-            {
-                _logger.LogDebug($"Command: Received - CloseValve " +
-                    $"{request.DataAsJson}.");
-
-                if (_pressure > 0.0d)
-                {
-                    _pressure = 0.0d;
-
-                    var report = new
-                    {
-                        Pressure = _pressure,
-                    };
-
-                    _logger.LogDebug($"Command: CloseValve:" +
-                            $" New Pressure={report.Pressure}");
-
-                    byte[] responsePayload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(report));
-                    return Task.FromResult(new MethodResponse(responsePayload, (int)StatusCode.Completed));
-                }
-
-                _logger.LogDebug($"Command: Valve already closed");
-                return Task.FromResult(new MethodResponse((int)StatusCode.AlreadyOpened));
+                byte[] responsePayload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(report));
+                return Task.FromResult(new MethodResponse(responsePayload, (int)StatusCode.Completed));
             }
             catch (JsonReaderException ex)
             {
@@ -274,6 +227,30 @@ namespace DeviceCommon
             if (maxPressure > _maxPressure)
             {
                 _maxPressure = maxPressure;
+                //Sent this Telemetry if you want to monitor it
+            }
+        }
+
+        private async Task SendMoistureAsync(CancellationToken cancellationToken)
+        {
+            await SendMoistureTelemetryAsync(cancellationToken);
+
+            double maxMoisture = _moistureReadingsDateTimeOffset.Values.Max<double>();
+            if (maxMoisture > _maxMoisture)
+            {
+                _maxPressure = maxMoisture;
+                //Sent this Telemetry if you want to monitor it
+            }
+        }
+
+        private async Task SendFlowAsync(CancellationToken cancellationToken)
+        {
+            await SendFlowTelemetryAsync(cancellationToken);
+
+            double maxFlow = _flowReadingsDateTimeOffset.Values.Max<double>();
+            if (maxFlow > _maxFlow)
+            {
+                _maxFlow = maxFlow;
                 //Sent this Telemetry if you want to monitor it
             }
         }
@@ -314,57 +291,49 @@ namespace DeviceCommon
             _pressureReadingsDateTimeOffset.Add(DateTimeOffset.Now, _pressure);
         }
 
+        // Send moisture update over telemetry.
+        private async Task SendMoistureTelemetryAsync(CancellationToken cancellationToken)
+        {
+            const string telemetryName = "Moisture";
+
+            string telemetryPayload = $"{{ \"{telemetryName}\": {_moisture} }}";
+            using var message = new Message(Encoding.UTF8.GetBytes(telemetryPayload))
+            {
+                ContentEncoding = "utf-8",
+                ContentType = "application/json",
+            };
+
+            await _deviceClient.SendEventAsync(message, cancellationToken);
+            _logger.LogDebug($"Telemetry: Sent - {{ \"{telemetryName}\": {_moisture} of Moisture }}.");
+
+            _moistureReadingsDateTimeOffset.Add(DateTimeOffset.Now, _moisture);
+        }
+
+        // Send pressure update over telemetry.
+        private async Task SendFlowTelemetryAsync(CancellationToken cancellationToken)
+        {
+            const string telemetryName = "Moisture";
+
+            string telemetryPayload = $"{{ \"{telemetryName}\": {_flow} }}";
+            using var message = new Message(Encoding.UTF8.GetBytes(telemetryPayload))
+            {
+                ContentEncoding = "utf-8",
+                ContentType = "application/json",
+            };
+
+            await _deviceClient.SendEventAsync(message, cancellationToken);
+            _logger.LogDebug($"Telemetry: Sent - {{ \"{telemetryName}\": {_flow} of Flow }}.");
+
+            _flowReadingsDateTimeOffset.Add(DateTimeOffset.Now, _flow);
+        }
+
         private async Task CheckEmptyPropertiesAsync(CancellationToken cancellationToken)
         {
             Twin twin = await _deviceClient.GetTwinAsync(cancellationToken);
             TwinCollection writableProperty = twin.Properties.Desired;
             TwinCollection reportedProperty = twin.Properties.Reported;
 
-            // Check if the device properties (both writable and reported) are empty.
-            if (!writableProperty.Contains(ActuatorPositionProperty) && !reportedProperty.Contains(ActuatorPositionProperty))
-            {
-                await ReportInitialPropertyAsync(ActuatorPositionProperty, cancellationToken);
-            }
-            // Check if the device properties (both writable and reported) are empty.
-            if (!writableProperty.Contains(ActuatorStateProperty) && !reportedProperty.Contains(ActuatorStateProperty))
-            {
-                await ReportInitialPropertyAsync(ActuatorStateProperty, cancellationToken);
-            }
-            // Check if the device properties (both writable and reported) are empty.
-            if (!writableProperty.Contains(BatteryLevelProperty) && !reportedProperty.Contains(BatteryLevelProperty))
-            {
-                await ReportInitialPropertyAsync(BatteryLevelProperty, cancellationToken);
-            }
-            // Check if the device properties (both writable and reported) are empty.
-            if (!writableProperty.Contains(LocationProperty) && !reportedProperty.Contains(LocationProperty))
-            {
-                await ReportInitialPropertyAsync(LocationProperty, cancellationToken);
-            }
-            // Check if the device properties (both writable and reported) are empty.
-            if (!writableProperty.Contains(RotationSpeedProperty) && !reportedProperty.Contains(RotationSpeedProperty))
-            {
-                await ReportInitialPropertyAsync(RotationSpeedProperty, cancellationToken);
-            }
-            // Check if the device properties (both writable and reported) are empty.
-            if (!writableProperty.Contains(SerialNumberProperty) && !reportedProperty.Contains(SerialNumberProperty))
-            {
-                await ReportInitialPropertyAsync(SerialNumberProperty, cancellationToken);
-            }
-            // Check if the device properties (both writable and reported) are empty.
-            if (!writableProperty.Contains(TimeRemainingProperty) && !reportedProperty.Contains(TimeRemainingProperty))
-            {
-                await ReportInitialPropertyAsync(TimeRemainingProperty, cancellationToken);
-            }
-            // Check if the device properties (both writable and reported) are empty.
-            if (!writableProperty.Contains(ValveNumberProperty) && !reportedProperty.Contains(ValveNumberProperty))
-            {
-                await ReportInitialPropertyAsync(ValveNumberProperty, cancellationToken);
-            }
-            // Check if the device properties (both writable and reported) are empty.
-            if (!writableProperty.Contains(ValvePositionProperty) && !reportedProperty.Contains(ValvePositionProperty))
-            {
-                await ReportInitialPropertyAsync(ValvePositionProperty, cancellationToken);
-            }
+            //...
         }
 
         private async Task ReportInitialPropertyAsync(string propertyName, CancellationToken cancellationToken)
