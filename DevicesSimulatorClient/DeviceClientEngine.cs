@@ -49,9 +49,9 @@ namespace DevicesSimulatorClient
 
                     ISample sample;
                     if (deviceSettings.DeviceType == DeviceTypeEnum.Valve)
-                        sample = new ValveSample(deviceClient, logger);
+                        sample = new ValveSample(deviceClient, deviceSettings.DeviceId, logger);
                     else
-                        sample = new FlowSample(deviceClient, logger);
+                        sample = new FlowSample(deviceClient, deviceSettings.DeviceId, logger);
 
                     var task = sample.PerformOperationsAsync(cts.Token);
                     deviceTasks.Add(task);

@@ -19,6 +19,7 @@ namespace DeviceCommon
         // See https://docs.microsoft.com/azure/iot-develop/concepts-convention#writable-properties for more details in acknowledgment responses.
         private const double DefaultPropertyValue = 0d;
         private const long DefaultAckVersion = 0L;
+        private readonly string DeviceId;
 
         private readonly Random _random = new Random();
 
@@ -48,9 +49,10 @@ namespace DeviceCommon
         // has been processed.
         private static long s_localWritablePropertiesVersion = 1;
 
-        public FlowSample(DeviceClient deviceClient, ILogger logger)
+        public FlowSample(DeviceClient deviceClient, string deviceId, ILogger logger)
         {
             _deviceClient = deviceClient ?? throw new ArgumentNullException(nameof(deviceClient));
+            DeviceId = deviceId;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -65,7 +67,7 @@ namespace DeviceCommon
 
             _deviceClient.SetConnectionStatusChangesHandler(async (status, reason) =>
             {
-                _logger.LogDebug($"Connection status change registered - status={status}, reason={reason}.");
+                _logger.LogDebug($"{DeviceId} Connection status change registered - status={status}, reason={reason}.");
 
                 // Call GetWritablePropertiesAndHandleChangesAsync() to get writable properties from the server once the connection status changes into Connected.
                 // This can get back "lost" property updates in a device reconnection from status Disconnected_Retrying or Disconnected.
@@ -112,7 +114,7 @@ namespace DeviceCommon
         private async Task GetWritablePropertiesAndHandleChangesAsync()
         {
             Twin twin = await _deviceClient.GetTwinAsync();
-            _logger.LogInformation($"Device retrieving twin values on CONNECT: {twin.ToJson()}");
+            _logger.LogInformation($"{DeviceId} Device retrieving twin values on CONNECT: {twin.ToJson()}");
 
             TwinCollection twinCollection = twin.Properties.Desired;
             long serverWritablePropertiesVersion = twinCollection.Version;
@@ -184,7 +186,7 @@ namespace DeviceCommon
         {
             try
             {
-                _logger.LogDebug($"Command: Received - CalibrateMeter " +
+                _logger.LogDebug($"{DeviceId} Command: Received - CalibrateMeter " +
                     $"{request.DataAsJson}.");
 
                 _pressure = Math.Round(_random.NextDouble() * 1.0 + 10.0, 1);
@@ -194,7 +196,7 @@ namespace DeviceCommon
                     Calibrating = 1.0d,
                 };
 
-                _logger.LogDebug($"Command: OpenValve:" +
+                _logger.LogDebug($"{DeviceId} Command: CalibrateMeter:" +
                         $" New Pressure={report.Calibrating}");
 
                 byte[] responsePayload = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(report));
@@ -268,7 +270,7 @@ namespace DeviceCommon
             };
 
             await _deviceClient.SendEventAsync(message, cancellationToken);
-            _logger.LogDebug($"Telemetry: Sent - {{ \"{telemetryName}\": {_temperature}°C }}.");
+            _logger.LogDebug($"{DeviceId} Telemetry: Sent - {{ \"{telemetryName}\": {_temperature}°C }}.");
 
             _temperatureReadingsDateTimeOffset.Add(DateTimeOffset.Now, _temperature);
         }
@@ -286,7 +288,7 @@ namespace DeviceCommon
             };
 
             await _deviceClient.SendEventAsync(message, cancellationToken);
-            _logger.LogDebug($"Telemetry: Sent - {{ \"{telemetryName}\": {_pressure} bar }}.");
+            _logger.LogDebug($"{DeviceId} Telemetry: Sent - {{ \"{telemetryName}\": {_pressure} bar }}.");
 
             _pressureReadingsDateTimeOffset.Add(DateTimeOffset.Now, _pressure);
         }
@@ -304,7 +306,7 @@ namespace DeviceCommon
             };
 
             await _deviceClient.SendEventAsync(message, cancellationToken);
-            _logger.LogDebug($"Telemetry: Sent - {{ \"{telemetryName}\": {_moisture} of Moisture }}.");
+            _logger.LogDebug($"{DeviceId} Telemetry: Sent - {{ \"{telemetryName}\": {_moisture} of Moisture }}.");
 
             _moistureReadingsDateTimeOffset.Add(DateTimeOffset.Now, _moisture);
         }
@@ -312,7 +314,7 @@ namespace DeviceCommon
         // Send pressure update over telemetry.
         private async Task SendFlowTelemetryAsync(CancellationToken cancellationToken)
         {
-            const string telemetryName = "Moisture";
+            const string telemetryName = "Flow";
 
             string telemetryPayload = $"{{ \"{telemetryName}\": {_flow} }}";
             using var message = new Message(Encoding.UTF8.GetBytes(telemetryPayload))
@@ -322,7 +324,7 @@ namespace DeviceCommon
             };
 
             await _deviceClient.SendEventAsync(message, cancellationToken);
-            _logger.LogDebug($"Telemetry: Sent - {{ \"{telemetryName}\": {_flow} of Flow }}.");
+            _logger.LogDebug($"{DeviceId} Telemetry: Sent - {{ \"{telemetryName}\": {_flow} of Flow }}.");
 
             _flowReadingsDateTimeOffset.Add(DateTimeOffset.Now, _flow);
         }
