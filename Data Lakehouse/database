@@ -1,0 +1,37 @@
+/****** Object:  Table [theshire].[Devices]    Script Date: 22/09/2022 09:41:24 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [theshire].[Devices](
+	[DeviceID] [int] IDENTITY(1,1) NOT NULL,
+	[DeviceCode] [varchar](15) NULL,
+	[GreenhouseCode] [varchar](10) NULL,
+	[Owner] [varchar](50) NULL,
+	[Created] [datetime] NULL,
+	[RegistrationKey] [varchar](50) NULL,
+	[OwnerEmail] [varchar](50) NULL,
+	[ModifiedDate] [datetime] NULL
+) ON [PRIMARY]
+GO
+
+/****** Object:  Table [theshire].[WatermarkTable]    Script Date: 22/09/2022 09:41:41 ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [theshire].[WatermarkTable](
+	[TableName] [varchar](100) NOT NULL,
+	[WatermarkValue] [datetime] NULL,
+ CONSTRAINT [PK_WatermarkTable] PRIMARY KEY CLUSTERED 
+(
+	[TableName] ASC
+)WITH (STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+
